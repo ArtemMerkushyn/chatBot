@@ -31,6 +31,22 @@ while True:
     if user_input == "пока":
         print("ИИ: До встречи, " + user_name + "!")
         break
+    
+
+    elif user_input.startswith("забудь "):
+        phrase_to_forget = user_input.replace("забудь ", "", 1).strip()
+
+
+        if phrase_to_forget in knowledge:
+            del knowledge[phrase_to_forget]
+            print("ИИ: Хорошо, я забыл, как отвечать на:", phrase_to_forget)
+
+
+             # Обновляем JSON-файл
+            with open(memory_file, "w", encoding="utf-8") as file:
+                json.dump(knowledge, file, ensure_ascii=False, indent=2)
+        else:
+            print("ИИ: Я и так не знаю, как отвечать на это.")
 
 
     elif user_input in knowledge:
