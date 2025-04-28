@@ -44,6 +44,26 @@ while True:
             print("ИИ: Пока я ничего не знаю.")
     
 
+    elif user_input.startswith("обучи заново "):
+        phrase_to_relearn = user_input.replace("обучи заново ", "", 1).strip()
+
+
+        if phrase_to_relearn in knowledge:
+            print("ИИ: Какой новый ответ ты хочешь задать на '" + phrase_to_relearn + "'?")
+            new_answer = input("Я: ")
+            knowledge[phrase_to_relearn] = new_answer
+        
+
+            # Обновляем JSON-файл
+            with open(memory_file, "w", encoding="utf-8") as file:
+                json.dump(knowledge, file, ensure_ascii=False, indent=2)
+
+        
+            print("ИИ: Отлично! Я запомнил новый ответ.")
+        else:
+            print("ИИ: Я не знаю этой фразы, так что не могу переобучиться. Можешь сначала меня научить.")
+
+
     elif user_input.startswith("забудь "):
         phrase_to_forget = user_input.replace("забудь ", "", 1).strip()
 
