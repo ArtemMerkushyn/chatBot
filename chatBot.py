@@ -31,6 +31,17 @@ while True:
     if user_input == "пока":
         print("ИИ: До встречи, " + user_name + "!")
         break
+
+
+    elif user_input == "покажи что ты знаешь":
+        if knowledge:
+            print("ИИ: Вот что я знаю:")
+            for question in knowledge:
+                print("-", question )
+        
+
+        else:
+            print("ИИ: Пока я ничего не знаю.")
     
 
     elif user_input.startswith("забудь "):
