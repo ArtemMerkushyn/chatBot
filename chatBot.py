@@ -47,7 +47,8 @@ while True:
     elif user_input.startswith("обучи заново "):
         phrase_to_relearn = user_input.replace("обучи заново ", "", 1).strip()
 
-
+        if not phrase_to_relearn:
+            print("ИИ: Ты не указал фразу, которую нужно переобучить. Пожалуйста, напиши так: 'обучи заново привет'")
         if phrase_to_relearn in knowledge:
             print("ИИ: Какой новый ответ ты хочешь задать на '" + phrase_to_relearn + "'?")
             new_answer = input("Я: ")
