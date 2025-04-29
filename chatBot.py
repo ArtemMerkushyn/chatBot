@@ -1,5 +1,6 @@
 import os
 import json
+import random
 
 print("Привет! Я ИИ-бот с памятью. Давай познакомимся.")
 user_name = input("Как тебя зовут? ")
@@ -79,10 +80,18 @@ while True:
                 break
 
         if matched and matched in knowledge:
-            print("ИИ:", knowledge[matched])
+            responce = knowledge[matched]
+            if isinstance(responce, list):
+                print("ИИ:", random.choice(responce))
+            else:
+                print("ИИ:", responce)
 
         elif user_input in knowledge:
-            print("ИИ:", knowledge[user_input])
+            responce = knowledge[user_input]
+            if isinstance(responce, list):
+                print("ИИ:", random.choice(responce))
+            else:
+                print("ИИ", responce)
 
         else:
             print("ИИ: Я не знаю, как ответить на это. Научи меня!")
