@@ -1,99 +1,96 @@
-import os # библиотека для работы с файлами
+import os
 import json
 
+print("Привет! Я ИИ-бот с памятью. Давай познакомимся.")
+user_name = input("Как тебя зовут? ")
+print("Приятно познакомиться, " + user_name + "!")
 
-print("Привет, Я chatBot! Давай познакомимся!")
-user_name = input("ИИ: Как тебя зовут? ")
-print("ИИ: Приятно познакомиться, " + user_name + "!")
-
-
-memory_file  = "memory.json"
+memory_file = "memory.json"
 knowledge = {}
-
 
 # Загрузка памяти
 if os.path.exists(memory_file):
     with open(memory_file, "r", encoding="utf-8") as file:
         knowledge = json.load(file)
 
+# Добавляем имя пользователя в память (обновляется каждый раз)
+knowledge["как меня зовут"] = "Тебя зовут " + user_name + "!"
 
-# Добавляем имя в память (перезаписываем каждый раз)
-knowledge["как меня зовут"] = "Тебя зовут, " + user_name + "."
+# Таблица синонимов
+synonyms = {
+    "привет": ["привет", "приветик", "здравствуй", "здорово", "добрый день"],
+    "как дела": ["как дела", "как ты", "как поживаешь", "как у тебя дела"]
+    # Добавляй свои синонимы по желанию
+}
 
-
-print("Можешь поговорить со мной, если надоест, напиши 'пока' что бы выйти.")
-
+print("Можешь поговорить со мной. Команды: обучи заново, забудь, покажи что ты знаешь, пока.")
 
 while True:
-    user_input = input("Я: ").lower()
-
+    user_input = input("Я: ").lower().strip()
 
     if user_input == "пока":
         print("ИИ: До встречи, " + user_name + "!")
         break
 
+    elif user_input.startswith("забудь "):
+        phrase_to_forget = user_input.replace("забудь ", "", 1).strip()
+        if phrase_to_forget in knowledge:
+            del knowledge[phrase_to_forget]
+            with open(memory_file, "w", encoding="utf-8") as file:
+                json.dump(knowledge, file, ensure_ascii=False, indent=2)
+            print("ИИ: Хорошо, я забыл, как отвечать на:", phrase_to_forget)
+        else:
+            print("ИИ: Я и так не знаю, как отвечать на это.")
 
     elif user_input == "покажи что ты знаешь":
         if knowledge:
             print("ИИ: Вот что я знаю:")
             for question in knowledge:
-                print("-", question )
-        
-
+                print("-", question)
         else:
             print("ИИ: Пока я ничего не знаю.")
-    
 
-    elif user_input.startswith("обучи заново "):
-        phrase_to_relearn = user_input.replace("обучи заново ", "", 1).strip()
-
+    elif user_input.startswith("обучи заново"):
+        phrase_to_relearn = user_input.replace("обучи заново", "", 1).strip()
         if not phrase_to_relearn:
-            print("ИИ: Ты не указал фразу, которую нужно переобучить. Пожалуйста, напиши так: 'обучи заново привет'")
-        if phrase_to_relearn in knowledge:
+            print("ИИ: Ты не указал фразу. Пример: 'обучи заново привет'")
+        elif phrase_to_relearn in knowledge:
             print("ИИ: Какой новый ответ ты хочешь задать на '" + phrase_to_relearn + "'?")
-            new_answer = input("Я: ")
-            knowledge[phrase_to_relearn] = new_answer
-        
-
-            # Обновляем JSON-файл
-            with open(memory_file, "w", encoding="utf-8") as file:
-                json.dump(knowledge, file, ensure_ascii=False, indent=2)
-
-        
-            print("ИИ: Отлично! Я запомнил новый ответ.")
+            new_answer = input("Я: ").strip()
+            if new_answer:
+                knowledge[phrase_to_relearn] = new_answer
+                with open(memory_file, "w", encoding="utf-8") as file:
+                    json.dump(knowledge, file, ensure_ascii=False, indent=2)
+                print("ИИ: Отлично! Я запомнил новый ответ.")
+            else:
+                print("ИИ: Ты ничего не написал. Переобучение отменено.")
         else:
-            print("ИИ: Я не знаю этой фразы, так что не могу переобучиться. Можешь сначала меня научить.")
+            print("ИИ: Я пока не знаю этой фразы. Сначала меня нужно научить ей.")
 
-
-    elif user_input.startswith("забудь "):
-        phrase_to_forget = user_input.replace("забудь ", "", 1).strip()
-
-
-        if phrase_to_forget in knowledge:
-            del knowledge[phrase_to_forget]
-            print("ИИ: Хорошо, я забыл, как отвечать на:", phrase_to_forget)
-
-
-             # Обновляем JSON-файл
-            with open(memory_file, "w", encoding="utf-8") as file:
-                json.dump(knowledge, file, ensure_ascii=False, indent=2)
-        else:
-            print("ИИ: Я и так не знаю, как отвечать на это.")
-
-
-    elif user_input in knowledge:
-        print("ИИ: " + knowledge[user_input])
-
-    
     else:
-        print("ИИ: Я не знаю, как ответить на это. Научи меня!")
-        new_answer = input("Как мне нужно отвечать на это? ")
-        knowledge[user_input] = new_answer
+        # Распознавание похожих фраз через синонимы
+        matched = None
+        for key_phrase, variants in synonyms.items():
+            for variant in variants:
+                if variant in user_input:
+                    matched = key_phrase
+                    break
+            if matched:
+                break
 
+        if matched and matched in knowledge:
+            print("ИИ:", knowledge[matched])
 
-        # Сохраняем память в JSON-файл
-        with open(memory_file, "w", encoding="utf-8") as file:
-            json.dump(knowledge, file, ensure_ascii=False, indent=2)
+        elif user_input in knowledge:
+            print("ИИ:", knowledge[user_input])
 
-
-        print("ИИ: Спасибо! Теперь я это запомнил.")
+        else:
+            print("ИИ: Я не знаю, как ответить на это. Научи меня!")
+            new_answer = input("Как мне нужно отвечать на это? ").strip()
+            if new_answer:
+                knowledge[user_input] = new_answer
+                with open(memory_file, "w", encoding="utf-8") as file:
+                    json.dump(knowledge, file, ensure_ascii=False, indent=2)
+                print("ИИ: Спасибо! Теперь я это запомнил.")
+            else:
+                print("ИИ: Ты ничего не написал. Обучение отменено.")
