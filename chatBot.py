@@ -68,6 +68,23 @@ while True:
         else:
             print("ИИ: Я пока не знаю этой фразы. Сначала меня нужно научить ей.")
 
+
+    elif user_input.startswith("обучи вариативно"):
+        phrase = user_input.replace("обучи вариативно", "", 1).strip()
+        if not phrase:
+           print("ИИ: Пример: 'обучи вариативно привет'") 
+        else:
+            print(f"ИИ: Введи варианты ответа на '{phrase}' через запятую:")
+            line = input("Я: ").strip()
+            variants = [v.strip() for v in line.split(",") if v.strip()]
+            if len(variants) < 2:
+                print("ИИ: Нужно хотя бы два варианта.")
+            else:
+                knowledge[phrase] = variants
+                with open(memory_file, "w", encoding="utf-8") as file:
+                    json.dump(knowledge, file, ensure_ascii=False, indent=2)
+                print("ИИ: Запомнил несколько вариантов!")
+
     else:
         # Распознавание похожих фраз через синонимы
         matched = None
