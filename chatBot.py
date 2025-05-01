@@ -106,39 +106,57 @@ while True:
                     json.dump(knowledge, file, ensure_ascii=False, indent=2)
                 print(f"ИИ: Добавил варианты для '{phrase}'.")
 
-
     else:
-        # Распознавание похожих фраз через синонимы
-        matched = None
-        for key_phrase, variants in synonyms.items():
-            for variant in variants:
-                if variant in user_input:
-                    matched = key_phrase
-                    break
-            if matched:
+         # 🎭 Эмоции
+        emotion_triggers = {
+            "груст": "Не грусти! Всё обязательно наладится 💪",
+            "печаль": "Скоро станет лучше. Я с тобой 🤍",
+            "рад": "Рад за тебя! 😊",
+            "счастл": "Здорово! Счастье — это круто!",
+            "один": "Ты не один — я рядом 🤗",
+            "шок": "Понимаю... Это бывает. Держись.",
+            "устал": "Попробуй отдохнуть. Ты заслуживаешь этого 🌙",
+            "ненавижу": "Сложно бывает... Но держи себя в руках 🙏"
+        }
+
+        for trigger, emo_response in emotion_triggers.items():
+            if trigger in user_input:
+                print("ИИ:", emo_response)
                 break
 
-        if matched and matched in knowledge:
-            responce = knowledge[matched]
-            if isinstance(responce, list):
-                print("ИИ:", random.choice(responce))
-            else:
-                print("ИИ:", responce)
-
-        elif user_input in knowledge:
-            responce = knowledge[user_input]
-            if isinstance(responce, list):
-                print("ИИ:", random.choice(responce))
-            else:
-                print("ИИ", responce)
 
         else:
-            print("ИИ: Я не знаю, как ответить на это. Научи меня!")
-            new_answer = input("Как мне нужно отвечать на это? ").strip()
-            if new_answer:
-                knowledge[user_input] = new_answer
-                with open(memory_file, "w", encoding="utf-8") as file:
-                    json.dump(knowledge, file, ensure_ascii=False, indent=2)
-                print("ИИ: Спасибо! Теперь я это запомнил.")
+            # Распознавание похожих фраз через синонимы
+            matched = None
+            for key_phrase, variants in synonyms.items():
+                for variant in variants:
+                    if variant in user_input:
+                        matched = key_phrase
+                        break
+                if matched:
+                    break
+
+            if matched and matched in knowledge:
+                responce = knowledge[matched]
+                if isinstance(responce, list):
+                    print("ИИ:", random.choice(responce))
+                else:
+                    print("ИИ:", responce)
+
+            elif user_input in knowledge:
+                responce = knowledge[user_input]
+                if isinstance(responce, list):
+                    print("ИИ:", random.choice(responce))
+                else:
+                    print("ИИ", responce)
+
             else:
-                print("ИИ: Ты ничего не написал. Обучение отменено.")
+                print("ИИ: Я не знаю, как ответить на это. Научи меня!")
+                new_answer = input("Как мне нужно отвечать на это? ").strip()
+                if new_answer:
+                    knowledge[user_input] = new_answer
+                    with open(memory_file, "w", encoding="utf-8") as file:
+                        json.dump(knowledge, file, ensure_ascii=False, indent=2)
+                    print("ИИ: Спасибо! Теперь я это запомнил.")
+                else:
+                    print("ИИ: Ты ничего не написал. Обучение отменено.")
