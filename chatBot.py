@@ -85,6 +85,28 @@ while True:
                     json.dump(knowledge, file, ensure_ascii=False, indent=2)
                 print("ИИ: Запомнил несколько вариантов!")
 
+
+    elif user_input.startswith("добавь варианты"):
+        phrase = user_input.replace("добавь варианты", "", 1).strip()
+        if not phrase:
+            print("ИИ: Пример: 'добавь варианты привет'")
+        else:
+            print(f"Введи новые варианты ответа на '{phrase}' через запятую:")
+            line = input("Ты:").strip()
+            new_variants = [v.strip() for v in line.split(",") if v.strip()]
+            if not new_variants:
+                print("ИИ: Пустой список. Отмена.")
+            else:
+                existing = knowledge.get(phrase, [])
+                if isinstance(existing, str):
+                    existing = [existing]
+                all_variants = list(set(existing + new_variants))
+                knowledge[phrase] = all_variants
+                with open(memory_file, 'w', encoding="utf-8") as file:
+                    json.dump(knowledge, file, ensure_ascii=False, indent=2)
+                print(f"ИИ: Добавил варианты для '{phrase}'.")
+
+
     else:
         # Распознавание похожих фраз через синонимы
         matched = None
