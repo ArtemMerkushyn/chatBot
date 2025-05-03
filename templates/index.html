@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>ИИ-Чат</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; background: #f5f5f5; }
+        h1 { color: #333; }
+        form { margin-bottom: 20px; }
+        input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+        }
+        .chat {
+            background: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+        .chat p { margin: 5px 0; }
+        .user { font-weight: bold; color: #007bff; }
+        .bot { font-weight: bold; color: #28a745; }
+    </style>
+    </head>
+    <body>
+        <h1>Чат-бот</h1>
+        <form method="POST">
+            <input type="text" name="user_input" placeholder="Напиши что-нибудь..." required autocomplete="off">
+            <button type="submit">Отправить</button>
+        </form>
+        {% if user_input %}
+        <div class="chat">
+            <p class="user">Ты: {{ user_input }}</p>
+            <p class="bot">ИИ: {{ bot_reply }}</p>
+        </div>
+        {% endif %}
+    </body>
+</html>
