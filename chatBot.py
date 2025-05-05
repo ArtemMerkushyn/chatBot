@@ -1,53 +1,61 @@
-import json
 import os
+import json
 import random
 
 memory_file = "memory.json"
 knowledge = {}
+synonyms = {
+    "привет": ["привет", "приветик", "здравствуй", "здорово", "добрый день"],
+    "как дела": ["как дела", "как ты", "как поживаешь", "как у тебя дела"]
+}
 
-# Загрузка памяти из файла
 if os.path.exists(memory_file):
     with open(memory_file, "r", encoding="utf-8") as file:
         knowledge = json.load(file)
 
-# Словарь синонимов
-synonyms = {
-    "привет": ["здравствуй", "приветик", "хай", "здорово"],
-    "пока": ["до встречи", "до свидания", "увидимся"],
-    "как дела": ["как ты", "как поживаешь"],
-    "грустно": ["печально", "тоска", "уныло"],
-    "весело": ["радостно", "кайф", "круто", "классно"]
-}
+def save_knowledge():
+    with open(memory_file, "w", encoding="utf-8") as file:
+        json.dump(knowledge, file, ensure_ascii=False, indent=2)
 
 def get_bot_reply(user_input):
     user_input = user_input.lower().strip()
 
-    # Команда обучения: обучи фраза = ответ
-    if user_input.startswith("обучи "):
-        parts = user_input[7:].split("=")
-        if len(parts) == 2:
-            phrase = parts[0].strip()
-            answer = parts[1].strip()
-            if phrase and answer:
-                # Если уже есть, добавим в список
-                if phrase in knowledge:
-                    if isinstance(knowledge[phrase], list):
-                        knowledge[phrase].append(answer)
-                    else:
-                        knowledge[phrase] = [knowledge[phrase], answer]
-                else:
-                    knowledge[phrase] = [answer]
-
-                with open(memory_file, "w", encoding="utf-8") as file:
-                    json.dump(knowledge, file, ensure_ascii=False, indent=2)
-
-                return "Спасибо! Я запомнил новую информацию."
-            else:
-                return "Фраза или ответ не могут быть пустыми."
+    if user_input == "покажи что ты знаешь":
+        if knowledge:
+            return "Я знаю следующие фразы:\n" + "\n".join(f"- {q}" for q in knowledge)
         else:
-            return "Формат команды должен быть: обучи фраза = ответ"
+            return "Пока я ничего не знаю."
 
-    # Распознавание синонимов
+    elif user_input.startswith("забудь "):
+        phrase = user_input.replace("забудь ", "", 1).strip()
+        if phrase in knowledge:
+            del knowledge[phrase]
+            save_knowledge()
+            return f"Хорошо, я забыл, как отвечать на: {phrase}"
+        else:
+            return "Я и так не знаю, как отвечать на это."
+
+    elif user_input.startswith("обучи заново"):
+        phrase = user_input.replace("обучи заново", "", 1).strip()
+        if not phrase:
+            return "Ты не указал фразу. Пример: 'обучи заново привет'"
+        elif phrase in knowledge:
+            return f"Какой новый ответ ты хочешь задать на '{phrase}'?"
+        else:
+            return "Я пока не знаю этой фразы. Сначала меня нужно научить ей."
+
+    elif user_input.startswith("обучи вариативно"):
+        phrase = user_input.replace("обучи вариативно", "", 1).strip()
+        if not phrase:
+            return "Пример: 'обучи вариативно привет'"
+        return f"Введи варианты ответа на '{phrase}' через запятую:"
+
+    elif user_input.startswith("добавь варианты"):
+        phrase = user_input.replace("добавь варианты", "", 1).strip()
+        if not phrase:
+            return "Пример: 'добавь варианты привет'"
+        return f"Введи новые варианты ответа на '{phrase}' через запятую:"
+
     matched = None
     for key_phrase, variants in synonyms.items():
         for variant in variants:
@@ -57,16 +65,34 @@ def get_bot_reply(user_input):
         if matched:
             break
 
-    # Ответ из базы знаний
     if matched and matched in knowledge:
         response = knowledge[matched]
     elif user_input in knowledge:
         response = knowledge[user_input]
     else:
-        return "Я не знаю, как ответить на это. Напиши: обучи фраза = ответ"
+        return f"Я не знаю, как ответить на '{user_input}'. Напиши новый ответ, чтобы я запомнил его."
 
-    # Возвращаем случайный ответ, если их несколько
     if isinstance(response, list):
         return random.choice(response)
-    else:
-        return response
+    return response
+
+def retrain_phrase(phrase, answer):
+    knowledge[phrase] = answer
+    save_knowledge()
+    return "Отлично! Я запомнил новый ответ."
+
+def train_variants(phrase, variants):
+    if len(variants) < 2:
+        return "Нужно хотя бы два варианта."
+    knowledge[phrase] = variants
+    save_knowledge()
+    return f"Запомнил несколько вариантов ответа для '{phrase}'"
+
+def add_variants(phrase, new_variants):
+    existing = knowledge.get(phrase, [])
+    if isinstance(existing, str):
+        existing = [existing]
+    all_variants = list(set(existing + new_variants))
+    knowledge[phrase] = all_variants
+    save_knowledge()
+    return f"Добавил варианты ответа для '{phrase}'"
