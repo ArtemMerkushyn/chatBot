@@ -6,19 +6,31 @@ import random
 app = Flask(__name__)
 
 memory_file = "memory.json"
+synonyms_file = "synonyms.json"
 knowledge = {}
-synonyms = {
-    "привет": ["привет", "приветик", "здравствуй", "здорово", "добрый день"],
-    "как дела": ["как дела", "как ты", "как поживаешь", "как у тебя дела"]
-}
+synonyms = {}
 
+# === Загрузка знаний ===
 if os.path.exists(memory_file):
     with open(memory_file, "r", encoding="utf-8") as file:
         knowledge = json.load(file)
 
+# === Загрузка синонимов ===
+if os.path.exists(synonyms_file):
+    with open(synonyms_file, "r", encoding="utf-8") as file:
+        synonyms = json.load(file)
+else:
+    with open(synonyms_file, "w", encoding="utf-8") as file:
+        json.dump({}, file, ensure_ascii=False, indent=2)
+    synonyms = {}
+
 def save_knowledge():
     with open(memory_file, "w", encoding="utf-8") as file:
         json.dump(knowledge, file, ensure_ascii=False, indent=2)
+
+def save_synonyms():
+    with open(synonyms_file, "w", encoding="utf-8") as file:
+        json.dump(synonyms, file, ensure_ascii=False, indent=2)
 
 def get_bot_reply(user_input):
     user_input = user_input.lower().strip()
@@ -58,6 +70,20 @@ def get_bot_reply(user_input):
         if not phrase:
             return "Пример: 'добавь варианты привет'"
         return {"action": "add_variants", "phrase": phrase}
+
+    elif user_input.startswith("добавь синонимы"):
+        try:
+            phrase_part = user_input.replace("добавь синонимы", "", 1).strip()
+            phrase, synonyms_text = phrase_part.split(":", 1)
+            phrase = phrase.strip()
+            new_syns = [s.strip() for s in synonyms_text.split(",") if s.strip()]
+            existing = synonyms.get(phrase, [])
+            all_synonyms = list(set(existing + new_syns))
+            synonyms[phrase] = all_synonyms
+            save_synonyms()
+            return f"Синонимы для '{phrase}' обновлены: {', '.join(all_synonyms)}"
+        except ValueError:
+            return "Формат: 'добавь синонимы фраза: синоним1, синоним2'"
 
     else:
         matched = None
