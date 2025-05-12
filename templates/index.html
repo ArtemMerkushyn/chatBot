@@ -4,21 +4,66 @@
   <meta charset="UTF-8">
   <title>Чат-бот</title>
   <style>
-    body { font-family: sans-serif; background: #f0f0f0; padding: 20px; }
-    #chat { background: white; padding: 15px; border-radius: 5px; max-width: 600px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    .message { margin: 10px 0; }
-    .user { text-align: right; }
-    .bot { text-align: left; }
-    input[type=text] {
-      width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;
+    body {
+      font-family: sans-serif;
+      background: #f0f0f0;
+      padding: 20px;
     }
-    button { margin-top: 10px; padding: 10px 20px; border: none; border-radius: 5px; background: #3498db; color: white; cursor: pointer; }
-    button:hover { background: #2980b9; }
+    #chat {
+      background: white;
+      padding: 15px;
+      border-radius: 5px;
+      max-width: 600px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .message {
+      margin: 10px 0;
+    }
+    .user {
+      text-align: right;
+    }
+    .bot {
+      text-align: left;
+    }
+    input[type=text] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 10px;
+      margin-right: 5px;
+      padding: 8px 15px;
+      border: none;
+      border-radius: 5px;
+      background: #3498db;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+    .buttons {
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
   <div id="chat">
+    <div class="buttons">
+      <button onclick="sendCommand('покажи что ты знаешь')">🧠 Показать знания</button>
+      <button onclick="sendCommand('покажи синонимы')">🔁 Показать синонимы</button>
+      <button onclick="teachPhrase()">➕ Обучить фразу</button>
+      <button onclick="addVariants()">➕ Добавить варианты</button>
+      <button onclick="addSynonyms()">➕ Добавить синонимы</button>
+      <button onclick="clearChat()">🧹 Очистить чат</button>
+    </div>
+
     <div id="chat-log"></div>
+
     <input type="text" id="user-input" placeholder="Напиши что-нибудь...">
     <button onclick="sendMessage()">Отправить</button>
   </div>
@@ -50,7 +95,65 @@
       chatLog.appendChild(msg);
       chatLog.scrollTop = chatLog.scrollHeight;
     }
+
+    function sendCommand(cmd) {
+      appendMessage("Ты", cmd, "user");
+      fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: cmd })
+      })
+      .then(res => res.json())
+      .then(data => {
+        const formattedReply = formatSynonyms(data.reply); // Форматируем ответ с синонимами
+        appendMessage("ИИ", formattedReply, "bot");
+      });
+    }
+
+    function teachPhrase() {
+      const phrase = prompt("Какую фразу ты хочешь переобучить?");
+      if (!phrase) return;
+      sendCommand("обучи заново " + phrase);
+    }
+
+    function addVariants() {
+      const phrase = prompt("К какой фразе добавить варианты?");
+      if (!phrase) return;
+      sendCommand("добавь варианты " + phrase);
+    }
+
+    function addSynonyms() {
+      const phrase = prompt("К какой фразе добавить синонимы?");
+      const syns = prompt("Введи синонимы через запятую:");
+      if (!phrase || !syns) return;
+      sendCommand("добавь синонимы " + phrase + ": " + syns);
+    }
+
+    function clearChat() {
+      document.getElementById("chat-log").innerHTML = "";
+    }
+
+    // Функция для форматирования ответа с синонимами
+    function formatSynonyms(reply) {
+      if (reply && reply.includes(':')) {
+        let formattedReply = reply.split('\n').map((line, index) => {
+          line = line.trim();
+          // Если это строка с фразой (например, "привет:"), выводим её как есть
+          if (line.length > 0 && (index === 0 || line.includes(':'))) {
+            return line;
+          }
+          // Для всех следующих строк с синонимами добавляем дефис
+          if (line.length > 0) {
+            return '  - ' + line;
+          }
+          return ''; // Возвращаем пустую строку для пустых строк
+        }).join('<br>'); // Разделяем строки с <br> между ними
+        return formattedReply;
+      }
+      return reply;
+    }
   </script>
 </body>
 </html>
+
 

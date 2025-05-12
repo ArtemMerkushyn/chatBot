@@ -4,10 +4,7 @@ import random
 
 memory_file = "memory.json"
 knowledge = {}
-synonyms = {
-    "привет": ["привет", "приветик", "здравствуй", "здорово", "добрый день"],
-    "как дела": ["как дела", "как ты", "как поживаешь", "как у тебя дела"]
-}
+synonyms = {}
 
 if os.path.exists(memory_file):
     with open(memory_file, "r", encoding="utf-8") as file:
