@@ -35,17 +35,19 @@ def save_synonyms():
 def get_bot_reply(user_input):
     user_input = user_input.lower().strip()
 
+    # === Показать знания ===
     if user_input == "покажи что ты знаешь":
         if knowledge:
             return "Я знаю следующие фразы:\n" + "\n".join(knowledge.keys())
         else:
             return "Пока я ничего не знаю."
-    
+
+    # === Показать синонимы ===
     elif user_input == "покажи синонимы":
         if synonyms:
             lines = []
             for phrase, variants in synonyms.items():
-                lines.append(f"{phrase}:")  # добавляем фразу
+                lines.append(f"{phrase}:")
                 # Каждый синоним на новой строке
                 for variant in variants:
                     lines.append(f"  {variant}")  # добавляем синоним с отступом
@@ -53,36 +55,7 @@ def get_bot_reply(user_input):
         else:
             return "У меня пока нет синонимов."
 
-    elif user_input.startswith("забудь "):
-        phrase = user_input.replace("забудь ", "", 1).strip()
-        if phrase in knowledge:
-            del knowledge[phrase]
-            save_knowledge()
-            return f"Хорошо, я забыл, как отвечать на: {phrase}"
-        else:
-            return "Я и так не знаю, как отвечать на это."
-
-    elif user_input.startswith("обучи заново"):
-        phrase = user_input.replace("обучи заново", "", 1).strip()
-        if not phrase:
-            return "Ты не указал фразу. Пример: 'обучи заново привет'"
-        elif phrase in knowledge:
-            return {"action": "retrain", "phrase": phrase}
-        else:
-            return "Я пока не знаю этой фразы. Сначала меня нужно научить ей."
-
-    elif user_input.startswith("обучи вариативно"):
-        phrase = user_input.replace("обучи вариативно", "", 1).strip()
-        if not phrase:
-            return "Пример: 'обучи вариативно привет'"
-        return {"action": "train_variants", "phrase": phrase}
-
-    elif user_input.startswith("добавь варианты"):
-        phrase = user_input.replace("добавь варианты", "", 1).strip()
-        if not phrase:
-            return "Пример: 'добавь варианты привет'"
-        return {"action": "add_variants", "phrase": phrase}
-
+    # === Добавить синонимы ===
     elif user_input.startswith("добавь синонимы"):
         try:
             phrase_part = user_input.replace("добавь синонимы", "", 1).strip()
@@ -97,27 +70,83 @@ def get_bot_reply(user_input):
         except ValueError:
             return "Формат: 'добавь синонимы фраза: синоним1, синоним2'"
 
+    # === Удалить синонимы ===
+    elif user_input.startswith("удали синонимы"):
+        try:
+            phrase_part = user_input.replace("удали синонимы", "", 1).strip()
+            phrase, synonyms_text = phrase_part.split(":", 1)
+            phrase = phrase.strip()
+            remove_syns = [s.strip() for s in synonyms_text.split(",") if s.strip()]
+            existing = synonyms.get(phrase, [])
+            updated = [s for s in existing if s not in remove_syns]
+            if len(updated) < len(existing):
+                synonyms[phrase] = updated
+                if not updated:
+                    del synonyms[phrase]
+                save_synonyms()
+                return f"Удалено: {', '.join(remove_syns)} из синонимов '{phrase}'."
+            else:
+                return f"Синонимы не найдены для удаления у фразы '{phrase}'."
+        except ValueError:
+            return "Формат: 'удали синонимы фраза: синоним1, синоним2'"
 
-    else:
-        matched = None
-        for key_phrase, variants in synonyms.items():
-            for variant in variants:
-                if variant in user_input:
-                    matched = key_phrase
-                    break
-            if matched:
-                break
-
-        if matched and matched in knowledge:
-            response = knowledge[matched]
-        elif user_input in knowledge:
-            response = knowledge[user_input]
+    # === Забудь фразу ===
+    elif user_input.startswith("забудь "):
+        phrase = user_input.replace("забудь ", "", 1).strip()
+        if phrase in knowledge:
+            del knowledge[phrase]
+            save_knowledge()
+            return f"Хорошо, я забыл, как отвечать на: {phrase}"
         else:
-            return {"action": "learn", "phrase": user_input}
+            return "Я и так не знаю, как отвечать на это."
 
-        if isinstance(response, list):
-            return random.choice(response)
-        return response
+    # === Обучение с нуля ===
+    elif user_input.startswith("обучи заново"):
+        phrase = user_input.replace("обучи заново", "", 1).strip()
+        if not phrase:
+            return "Ты не указал фразу. Пример: 'обучи заново привет'"
+        elif phrase in knowledge:
+            return {"action": "retrain", "phrase": phrase}
+        else:
+            return "Я пока не знаю этой фразы. Сначала меня нужно научить ей."
+
+    # === Обучение с вариантами ===
+    elif user_input.startswith("обучи вариативно"):
+        phrase = user_input.replace("обучи вариативно", "", 1).strip()
+        if not phrase:
+            return "Пример: 'обучи вариативно привет'"
+        return {"action": "train_variants", "phrase": phrase}
+
+    # === Добавление вариантов ===
+    elif user_input.startswith("добавь варианты"):
+        phrase = user_input.replace("добавь варианты", "", 1).strip()
+        if not phrase:
+            return "Пример: 'добавь варианты привет'"
+        return {"action": "add_variants", "phrase": phrase}
+
+    # === Обработка синонимов ===
+    matched = None
+    for key_phrase, variants in synonyms.items():
+        for variant in variants:
+            if variant in user_input:
+                matched = key_phrase
+                break
+        if matched:
+            break
+
+    # === Ответ по совпадению ===
+    if matched and matched in knowledge:
+        response = knowledge[matched]
+    elif user_input in knowledge:
+        response = knowledge[user_input]
+    else:
+        return {"action": "learn", "phrase": user_input}
+
+    # === Выбор варианта ответа ===
+    if isinstance(response, list):
+        return random.choice(response)
+    return response
+
 
 def retrain_phrase(phrase, answer):
     knowledge[phrase] = answer
