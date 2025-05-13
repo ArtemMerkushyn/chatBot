@@ -37,18 +37,10 @@ def get_bot_reply(user_input):
 
     if user_input == "покажи что ты знаешь":
         if knowledge:
-            return "Я знаю следующие фразы:\n" + "\n".join(f"- {q}" for q in knowledge)
+            return "Я знаю следующие фразы:\n" + "\n".join(knowledge.keys())
         else:
             return "Пока я ничего не знаю."
     
-    # elif user_input == "покажи синонимы":
-    #     if synonyms:
-    #         lines = []
-    #         for phrase, variants in synonyms.items():
-    #             lines.append(f"{phrase}: {', '.join(variants)}")
-    #         return "Вот известные синонимы:\n" + "\n".join(lines)
-    #     else:
-    #         return "У меня пока нет синонимов."
     elif user_input == "покажи синонимы":
         if synonyms:
             lines = []
@@ -60,9 +52,6 @@ def get_bot_reply(user_input):
             return "Вот известные синонимы:\n" + "\n".join(lines)
         else:
             return "У меня пока нет синонимов."
-
-
-
 
     elif user_input.startswith("забудь "):
         phrase = user_input.replace("забудь ", "", 1).strip()
