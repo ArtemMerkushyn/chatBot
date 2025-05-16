@@ -59,6 +59,7 @@
       <button onclick="teachPhrase()">➕ Обучить фразу</button>
       <button onclick="addVariants()">➕ Добавить варианты</button>
       <button onclick="addSynonyms()">➕ Добавить синонимы</button>
+      <button onclick="removeSynonyms()">➖ Удалить синонимы</button>
       <button onclick="clearChat()">🧹 Очистить чат</button>
     </div>
 
@@ -127,6 +128,14 @@
       const syns = prompt("Введи синонимы через запятую:");
       if (!phrase || !syns) return;
       sendCommand("добавь синонимы " + phrase + ": " + syns);
+    }
+
+    function removeSynonyms() {
+      const phrase = prompt("Для какой фразы удалить синонимы?");
+      if(!phrase) return;
+      const syns = prompt("Какие синонимы удалить? (через запятую)")
+      if(!syns) return;
+      sendCommand("удали синонимы " + phrase + ": " + syns);
     }
 
     function clearChat() {
